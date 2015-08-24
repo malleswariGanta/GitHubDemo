@@ -1,0 +1,1066 @@
+<%
+
+	var model = view.model;
+	var quantityAvailable='';
+	var qtyOnOrder_rccaLocation='';
+	var qtybackordered_rccaLocation='';
+	var totalQty='';
+	var boxcarId='';
+	
+	if (typeof(view.model.get('quantityonorder_detail')) != "undefined") {
+		var locations=view.model.get('quantityonorder_detail').locations;
+	}
+	
+	var instock=view.model.get('isinstock');
+	
+	if(locations != '') {
+		for(var k in locations) {
+			if(JSON.stringify(view.model.get('quantityonorder_detail').locations[k].internalid)==32) {
+	 			qtyOnOrder_rccaLocation=JSON.stringify(view.model.get('quantityonorder_detail').locations[k].quantityonorder);
+			}
+		}
+	}
+	
+	var backorderedLocations=view.model.get('quantitybackordered_detail').locations;
+	
+	if(backorderedLocations != '') {
+		for(var k in backorderedLocations) {
+			if(JSON.stringify(view.model.get('quantitybackordered_detail').locations[k].internalid)==32) {
+	 			qtybackordered_rccaLocation=JSON.stringify(view.model.get('quantitybackordered_detail').locations[k].quantitybackordered);
+			}
+		}
+	}
+	
+	totalQty=qtyOnOrder_rccaLocation-qtybackordered_rccaLocation;
+	
+	if (typeof(view.model.get('custitem_allow_pre_order')) != "undefined") {
+		var preorder=view.model.get('custitem_allow_pre_order');
+console.log("preorder "+preorder);
+	}
+	
+	var availableLocations=view.model.get('quantityavailable_detail').locations;
+	
+	if(availableLocations != '') {
+		for(var k in availableLocations) {
+			if(JSON.stringify(view.model.get('quantityavailable_detail').locations[k].internalid)==32) {
+	 			quantityAvailable=JSON.stringify(view.model.get('quantityavailable_detail').locations[k].quantityavailable);
+			}
+		}
+	}
+	
+	var quantityField=view.model.get('quantity');
+	var allow_pre_order=view.model.get('custitem_allow_pre_order');
+	var product_status=view.model.get('custitem_product_status');
+	
+	var matrixOptions = view.model.get('matrixchilditems_detail');
+	
+	var i=JSON.stringify(view.model.get('itemimages_detail').urls.length);
+	console.log(i);
+	if(i>1)
+	{
+	
+	var itemImage=JSON.stringify(view.model.get('itemimages_detail').urls[1].url);
+	console.log(itemImage);
+	    var res = itemImage.replace(/ /gi, "%20");
+	    var res1=itemImage.replace(/"/gi, "");
+	    console.log('res1...'+res1);
+	}
+
+var option=JSON.stringify(view.model.get('itemoptions_detail').fields.length);
+console.log('option' +option);
+var option1=JSON.stringify(view.model.get('itemoptions_detail').fields);
+console.log('option' +option1);
+for (var i = 0; i < option1.length; i++) {
+//alert(view.model.get('itemoptions_detail').fields[i]);
+if(typeof(view.model.get('itemoptions_detail').fields[i]) !='undefined')
+{
+
+var id=JSON.stringify(view.model.get('itemoptions_detail').fields[i].internalid);
+if(id=='"custcol_personalization_ln_1"')
+{
+boxcarId=id;
+}
+}
+}
+
+
+%>
+<style>
+#featureHeader{
+  margin-top:  0px;
+}
+</style>
+<link rel="stylesheet"  href="<%=SC.Utils.getAbsoluteUrl('green-palace script/stylesheet.css')%>" type="text/css" charset="utf-8" />
+<link rel="stylesheet"  href="<%=SC.Utils.getAbsoluteUrl('red-comic sans/stylesheet.css')%>" type="text/css" charset="utf-8" />
+<script>
+	jQuery.noConflict();
+	jQuery(document).ready(function() {
+        var desc=jQuery('#sca-desc').text();
+        jQuery('#sca-desc').html(desc);
+     	jQuery('#add-to-cart-member').click(function() {
+      		window.location.href="http://racing-sandbox.com/cart/app/site/backend/intl/additemtocart.nl?c=445393&buyid=14219&qty=1&&showcart=T";
+	 	});
+	});
+</script>	
+
+<script>
+	var icons = "<%= view.model.get('custitem_feature_icons') %>";
+	
+	if(icons != null && icons  !=''){
+	var iconList = new Array();
+	iconList=icons.split(', ');
+	for(var i=0; i<iconList.length; i++) {
+	 if(iconList[i]!=""){
+		
+			var iconImg = document.createElement("img");
+			iconImg.className = "featureicon";
+			iconImg.title =iconList[i];
+			iconImg.src="<%=SC.Utils.getAbsoluteUrl('img/siteimages/Icn_"+iconList[i]+".gif')%>";
+			document.getElementById('featureIcons').appendChild(iconImg);
+		
+		}
+	}
+}
+</script> 
+
+
+<%
+	var model = view.model;	
+	var related_items = view.getRelatedItems();
+	var sale_price=view.model.get('pricelevel57_formatted');
+	var sale_price_checkbox=view.model.get('custitem_online_price');
+	var mem_price= view.model.get('pricelevel5_formatted');
+	var msrp_price=view.model.get('pricelevel32_formatted');
+	var matrixChilds=view.model.get('matrixchilditems_detail');
+	var sizeChartValue = view.model.get('_sizechart');
+	console.log('sizeChartValue' +sizeChartValue);
+%>
+
+<input type="hidden" value=<%=boxcarId%> id="boxcarid">
+	
+<!-- For getting popup content from content delivery pages -->
+<div id="popupGauge"></div>
+<div id="popupMinCurve"></div> 
+
+
+<div class="view-header" itemscope itemtype="http://schema.org/WebPage">
+	<%= breadcrumb(view.model.get('_breadcrumb')) %>
+	<div id="banner-content-top" class="content-banner banner-content-top"></div>
+</div>
+
+<div id="message" style="color:#c09853;background-color:#fcf8e3;padding:10px 35px 10px 15px;border-radius:4px;display:none;">
+	<%= _('The item has been added to our notify list').translate() %>
+</div>
+
+<div class="view-body" itemscope itemtype="http://schema.org/Product">
+	<meta itemprop="url" content="<%= view.model.get('_url') %>">
+	
+	<div class="row" id="productTop">
+		
+		<div class="col-md-8 col-lg-8" id="productTopLeft">
+			<%= SC.macros[view.application.getConfig('macros.itemDetailsImage')](view.model.get('_images', true), view) %>
+		</div>
+		
+		<div class="col-md-4 col-lg-4 customclass" id="productTopRight">
+			
+			<div class="productTitle">
+				<h1 style="font-size: 1.8em;font-weight: bold;text-transform: uppercase;">
+					<%= model.get('_name') %>
+				</h1>
+			</div>
+			
+			<div class="productSKU">
+				<%= _('SKU: $(0)').translate('<span itemprop="sku" id="sku">' + view.model.get('_sku') + '</span>') %>
+			</div>
+			
+			<div id="featureIcons" class="featureicon"></div>
+			
+			<img class="productDivider" src="<%=SC.Utils.getAbsoluteUrl('img/siteimages/divider.png')%>">
+			
+		<%if(sale_price_checkbox == true) { %>
+	   	 		
+	   	 		<div class="msrpPrice" style="color: #f4793e;">
+	     			<small>Sale Price: </small><strong><%= sale_price %></strong>
+	     		</div>
+				
+				<div class="memberPrice">
+					<small class="muted crossed">MSRP: </small><strong  class="muted crossed"><%= mem_price %></strong>
+				</div>
+				
+			<% } else {%>
+	   			
+	   			<div class="msrpPrice">
+	   				<small >MSRP: </small><strong><%= view.model.get('_memberPriceFormated')%></strong>
+	   			</div>
+	    
+	   		<% } %>
+	   		
+	   		<div class="well-body">
+				
+				<% if (!view.model.isProperlyConfigured()) { %>
+					<div class="alert alert-error">
+						<%= _('<b>Warning</b>: This item is not properly configured, please contact your administrator.').translate() %>
+					</div>
+				<% } else { 
+					/*
+					Render a single option placeholder:
+					===================================
+					Any HTML element that matches [data-type=option], if it's rendered by ItemDetails.View 
+					will be populated by the render of a single macro for a single option, especified by the attributes:
+						data-cart-option-id: the id of the cart opion
+						data-macro: the macro you want this option to be rendered with, if omited the default for the option will be used
+					
+						
+					<div 
+						class="options-container" 
+						data-type="option" 
+						data-cart-option-id="cart_option_id" 
+						data-macro="macroName">
+					</div>
+						
+					Render all options placeholder:
+					===============================
+					Any HTML element that matches [data-type=all-options], if it's rendered by ItemDetails.View 
+					will be populated with the result of the execution of all the options with the macros, 
+					either the default one or the one configured in the itemOptions array.
+					Use the data-exclude-options to select the options you dont want to be rendered here,
+					this is a coma separated list, for instace: cart_option_id1, cart_option_id2
+					*/
+				%>
+				<% 
+				 	if ( (typeof(view.model.get('matrixchilditems_detail')) != 'undefined' && view.model.get('matrixchilditems_detail') != null) || view.model.get('_itemType') == 'GiftCert') {
+						console.log('Tiles'+view.model.get('matrixchilditems_detail'));
+				%>
+				<div 
+					id="default-options-container" 
+					class="options-container default-options-container" 
+					data-type="all-options" 
+					data-exclude-options="custcol_rcca_onsale,custcol5,custcol_oz_ships_separate,custcol_oz_scale,custcol_oz_item_weight,custcol_rcca_mem_shippingcost,custcol_rcca_nonmem_shippingcost,custcol_rcca_nonmem_price,custcol13,custcol14,custcol15,custcol16,custcol16,custcol_rcca_onsale_activated,custcol_ava_incomeaccount,custcol_ava_udf2,custcol_ava_taxcodemapping,custcol_ava_udf1,custcol_ava_item,custcol_ava_pickup,custcol_ava_upccode">
+				</div>
+				<% } %>
+				<% 
+				 	if (typeof(view.model.get('matrixchilditems_detail')) != 'undefined' && view.model.get('matrixchilditems_detail') != null) {
+						console.log('in chilcs'+view.model.get('matrixchilditems_detail'));
+				%>
+				
+					<!--For Matrix Items--> 
+				
+					<form action="#" class="form-inline add-to-cart-form" id="custom-form">
+					
+						<% if (view.model.get('_itemType') !== 'GiftCert'){ %>
+						<% if (preorder ==true || preorder ==false) { %>
+							<label for="quantity" class="label-style">
+								<%= view.model.get('_minimumQuantity') !== 1 ? _('Quantity (Minimum of $(0) required)').translate(view.model.get('_minimumQuantity')) : _('Quantity').translate() %>
+							</label>
+						
+							<div class="control-group">
+							
+								<input type="number" name="quantity" id="quantity" class="input-mini quantity quantity-align" value="<%- view.model.get('quantity') %>" min="1">
+							
+								<div id="information" style="display: none;" class="msgtxt">
+									This item has a limited order quantity. The quantity has been adjusted.
+								</div>
+							
+								<div id="availinformation" style="display: none;" class="msgtxt">
+									The quantity you selected exceeds available amount in inventory. The quantity has been adjusted.
+								</div>
+						<% } %>
+						<% } else { %>
+						
+							<div class="control-group">
+								<input type="hidden" name="quantity" id="quantity" value="1">
+						<% } %>
+								<%= itemDetailsStock(view.model.getStockInfo()) %>
+							</div>
+					<div data-type="alert-placeholder"></div>
+									 
+					<%if(sizeChartValue == true) { %>
+					<div class="sizechart chart-align">
+		            <a id="size-chart" href="#"><font style="color: #f4793e; font-weight: bold;">Size Chart</font></a>
+                    </div>
+                    <% } %>
+                     
+                    <div id="size-chart-content" style="display:none;">
+                    </div>
+								     
+						<% if(preorder ==true) { %>
+						
+							<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%>>
+								<%= _('Pre-Order').translate() %>
+							</button>					
+								     
+						<% } else { %>
+						
+							<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%> id="custom-button-text">
+								<%= _('Add to Cart').translate() %>
+							</button>
+					
+						<% } %>
+					
+					</form>
+				
+					<div data-type="product-lists-control" class="wish"></div>
+					
+					<div  class="site-view">
+						
+						<!-- Go to www.addthis.com/dashboard to customize your tools -->
+						<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5422e39109df36e5" async="async"></script>
+						
+						<!-- Go to www.addthis.com/dashboard to customize your tools -->
+						<div class="addthis_sharing_toolbox"></div>
+					
+					</div>
+										
+					<!--For Matrix Items--> 
+				  
+				  <% } else { %>
+				  	
+				  	<!--For Ordinary Items--> 
+					
+					<form action="#" class="form-inline add-to-cart-form" id="custom-form">
+						
+						<input type="hidden" name="quantityavailable" id="quantityavail-<%- view.model.get('internalid') %>" value="<%=quantityAvailable%>">
+						<input type="hidden" name="totalQty" id="totalQty-<%- view.model.get('internalid') %>" value="<%=totalQty%>">
+						
+						<% if (view.model.get('_itemType') !== 'GiftCert'){ %>
+						<% if (view.model.get('isspecialorderitem') == true||quantityAvailable>0||allow_pre_order==true) { %>
+							<label for="quantity" class="label-style">
+								<%= view.model.get('_minimumQuantity') !== 1 ? _('Quantity (Minimum of $(0) required)').translate(view.model.get('_minimumQuantity')) : _('Quantity').translate() %>
+							</label>
+									
+							<div class="control-group">
+								
+								<input type="number" name="quantity" id="quantity" class="input-mini quantity quantity-align" value="<%- view.model.get('quantity') %>" min="1">
+								
+								<div id="information" style="display: none;" class="msgtxt">
+									This item has a limited order quantity. The quantity has been adjusted.
+								</div>
+								
+								<div id="availinformation" style="display: none;" class="msgtxt">
+									The quantity you selected exceeds available amount in inventory. The quantity has been adjusted.
+								</div>
+							<% } %>	
+						<% } else { %>
+									
+							<div class="control-group">
+								<input type="hidden" name="quantity" id="quantity" value="1">
+								
+						<% } %>
+								<%= itemDetailsStock(view.model.getStockInfo()) %>
+							</div>
+								
+						<div data-type="alert-placeholder"></div>
+						
+						<% if (view.model.get('isspecialorderitem') == true) { %>
+<div id="disableMsg" style="color:white;padding: 10px 35px 10px 15px; border-radius: 4px; display: block; background-color:red;display:none;" class="msg-personalised">
+		Please Confirm The Personalized Text.
+	</div>
+            					<div id="dealerMsg" style="color:white;padding: 10px 35px 10px 15px; border-radius: 4px; display: block; background-color:red;display:none;" class="msg-local-dealer">
+		Please Select Local Dealer.
+	</div>	 
+            				<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%>>
+								<%= _('Add to Cart').translate() %>
+							</button>
+							
+						<% } else if (view.model.get('_itemType') != 'GiftCert') { %>
+						
+							<%if(quantityAvailable>0) { %>
+<div id="disableMsg" style="color:white;padding: 10px 35px 10px 15px; border-radius: 4px; display: block; background-color:red;display:none;" class="msg-personalised">
+		Please Confirm The Personalized Text.
+	</div>
+								<div id="dealerMsg" style="color: white;padding: 10px 35px 10px 15px; border-radius: 4px; display: block; background-color: red;display:none;" class="msg-local-dealer">
+		Please Select Local Dealer.
+	</div>	 
+								<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%>>
+									<%= _('Add to Cart').translate() %>
+								</button>
+								
+							<% } else if(allow_pre_order==true) { %>
+								
+								<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%>>
+									<%= _('Pre-Order').translate() %>
+								</button>
+                                
+                                <script> jQuery("#wishlist-btn").addClass("btnwish"); </script>
+                                <script> jQuery("#socialicons-btn").addClass("social"); </script>
+                                <br>
+								
+								<span class="notify-me product-notifyme ">
+                       				 <a custom-data="<%- view.model.get('internalid')%>" class="notifyme-<%- view.model.get('internalid')%>" data-action="custom-notify"><img src="<%=SC.Utils.getAbsoluteUrl('img/siteimages/notifyMe.png')%>" alt="Notify Me" itemprop="image">Notify me when in stock.</a>
+                        		</span>
+                        		
+							<% } else if(quantityAvailable==0||null&&qtyOnOrder_rccaLocation==0||null&&product_status=="Discontinued") { %>
+								
+								<p style="color:#f4793e;font-size: 25px;">
+									<b><%= _('Out of Stock').translate() %> </b>
+								</p>
+								 <script> jQuery(".site-view").addClass("soldout-view"); </script>
+								<script> document.getElementById("wishlist-btn").style.display="none"; </script>
+								
+								<span class="notify-me soldout-notifyme">
+                       			 	<a custom-data="<%- view.model.get('internalid')%>" class="notifyme-<%- view.model.get('internalid')%>" data-action="custom-notify"><img src="<%=SC.Utils.getAbsoluteUrl('img/siteimages/notifyMe.png')%>" alt="Notify Me" itemprop="image">Notify me when in stock.</a>
+                        		</span>
+                        			
+                        	<% }else if(quantityAvailable==0||null&&qtyOnOrder_rccaLocation>qtybackordered_rccaLocation) { %>
+								
+								<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%>>
+									<%= _('Pre-Order').translate() %>
+								</button>
+								
+                                <br>
+								
+								<span class="notify-me product-notifyme">
+                       				 <a custom-data="<%- view.model.get('internalid')%>" class="notifyme-<%- view.model.get('internalid')%>" data-action="custom-notify"><img src="<%=SC.Utils.getAbsoluteUrl('img/siteimages/notifyMe.png')%>" alt="Notify Me" itemprop="image">Notify me when in stock.</a>
+                        		</span>
+								
+						<% }else{ %>
+								
+							<p style="color:#f4793e;font-size: 25px;">
+								<b id="outofstock"><%= _('Out of Stock ').translate() %> </b>
+							</p>
+							 <script> jQuery(".site-view").addClass("soldout-view"); </script>
+							<script> document.getElementById("wishlist-btn").style.display="none"; </script>
+							
+							<span class="notify-me soldout-notifyme">
+                       			<a custom-data="<%- view.model.get('internalid')%>" class="notifyme-<%- view.model.get('internalid')%>" data-action="custom-notify"><img src="<%=SC.Utils.getAbsoluteUrl('img/siteimages/notifyMe.png')%>" alt="Notify Me" itemprop="image">Notify me when in stock.</a>
+                        	</span>
+						
+						<% } %>
+									
+           				<% } else if (view.model.get('_itemType') == 'GiftCert') { %>
+            						 
+            				<button data-type="add-to-cart" id="button1" class="btn btn-primary add-cart"<% if (!view.model.isReadyForCart()) {%> disabled<%}%>>
+								<%= _('Add to Cart').translate() %>
+							</button>
+							
+						<% } %>
+					
+					</form>
+					
+					<div data-type="product-lists-control" id="wishlist-btn" class="wish"></div>
+				
+					<div class="site-view" id="socialicons-btn">
+								
+						<!-- Go to www.addthis.com/dashboard to customize your tools -->
+						<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5422e39109df36e5" async="async"></script>
+
+						<!-- Go to www.addthis.com/dashboard to customize your tools -->
+						<div class="addthis_sharing_toolbox"></div>
+						
+					</div>
+										
+					<!--For Ordinary Items--> 
+				
+				<% } %>
+				
+				<% if( view.model.get('custitem_related_product_docs') ||  view.model.get('custitem_related_product_vid1') || view.model.get('custitem_related_product_vid2') || view.model.get('custitem_related_product_vid3') || view.model.get('custitem_related_product_vid4') ) { %>
+				
+					<script>
+						
+						function defaultVideo() {
+							
+							if("<%= view.model.get('custitem_related_product_vid1')%>") {
+								url = "<%= view.model.get('custitem_related_product_vid1')%>";
+							}
+							
+							else if("<%= view.model.get('custitem_related_product_vid2')%>") {
+								url = "<%= view.model.get('custitem_related_product_vid2')%>";
+							}
+							
+							else if("<%= view.model.get('custitem_related_product_vid3')%>") {
+								url = "<%= view.model.get('custitem_related_product_vid3')%>";
+							}
+							
+							else if("<%= view.model.get('custitem_related_product_vid4')%>") {
+								url = "<%= view.model.get('custitem_related_product_vid4')%>";
+							}
+			
+							var spliturl = new Array();
+							spliturl = url.split("youtu.be/");
+							var videoUrl = '//www.youtube.com/embed/';
+							videoUrl += spliturl[1];
+							document.getElementById('iframeSrc').src = videoUrl;
+							document.getElementById('iframeSrc').style.display="block";
+						}
+						
+						function defaultPDF() {
+							
+							var pdfURL1 = "<%= view.model.get('custitem_related_product_docs') %>";
+							var splitVar1 = new Array();
+							var splitVar2 = new Array();
+							splitVar1 = pdfURL1.split(",");
+							console.log('pdf url....'+splitVar1);
+							
+							 
+								
+								console.log('pdf url1....'+splitVar1[index]);
+								splitVar2 = splitVar1[0].split("#");
+										
+								var iframeUrl = "https://docs.google.com/gview?embedded=true&url="+SC.SESSION.touchpoints.home;
+																
+							 	document.getElementById('iframepdfSrc').src = iframeUrl+"<%=SC.Utils.getAbsoluteUrl('LionelStore Supporting Documents/"+splitVar2[0]+"')%>";
+								document.getElementById('iframepdfSrc').style.display="block";
+							
+							
+						}
+					
+					
+					</script>
+					
+					<h5>Related Information:</h5>
+					<div class="mainDiv" style="width: 100%; position: relative;">
+		
+						<% if( view.model.get('custitem_related_product_docs') ) { %>
+							
+							<div style="width:15%;float:left;margin-bottom: 30px;">
+								<a href="#" class="pdf-fancybox" onClick="defaultPDF()">
+									<img src="<%=SC.Utils.getAbsoluteUrl('img/pdf-icon.png')%>" style="max-width:100% !important;">
+								</a>
+							</div>
+						
+						<% } %>
+					
+						<% if( view.model.get('custitem_related_product_vid1') || view.model.get('custitem_related_product_vid2') || view.model.get('custitem_related_product_vid3') || view.model.get('custitem_related_product_vid4') ) { %>
+							
+							<div style="width:15%;margin-bottom: 30px;position: relative;float:right;left: -68%;">
+								<a href="#" class="video-fancybox" onClick="defaultVideo()">
+									<img src="<%=SC.Utils.getAbsoluteUrl('img/video-icon.png')%>" style="max-width:100% !important;">
+								</a>
+							</div>
+						
+						<% } %>
+				
+				<% } %>
+			
+			</div>
+	
+		</div>
+	
+	</div>
+
+	<%}%>
+
+	</div>	
+<!-- Start of Personalised Boxcar Display -->	
+	
+<% if (typeof(view.model.get('matrixchilditems_detail')) == 'undefined' && view.model.get('matrixchilditems_detail') == null) {
+	console.log('Text'+view.model.get('matrixchilditems_detail'));
+%>
+<% if(boxcarId=='"custcol_personalization_ln_1"') { %>
+	<script>
+	document.getElementById("wishlist-btn").style.display="none";
+	//document.getElementById("button1").disabled=true;
+	jQuery( "#button1" ).addClass( "cart_personalised" );
+ jQuery( "#socialicons-btn" ).addClass( "social_personalised" );
+ </script>
+<div class="row" id="boxcar" style="margin-bottom: 40px;">
+	<div class="col-md-9 col-lg-9 boxcar-img" id="productDescription">
+    	<img src='<%=res1%>' alt="" class="img-thumbnail">
+		<div id="inputdata1" class="image-text" style="top:23%;"></div>
+		<div id="inputdata2" class="image-text" style="top:29%;"></div>
+		<div id="inputdata3" class="image-text" style="top:35%;"></div>
+	</div>
+	
+<div class="col-md-4 col-lg-4" id="productDetails">
+    <div class="boxcar-text3">
+ 	<p class="p-text"><strong>For a limited time, create a personalized boxcar!</strong></p>
+	<p class="p-text">Step 1: Enter up to Three Lines</p>
+<p class="p-text">Step 2: View Personalization on Boxcar</p>
+<p class="p-text">Step 3: Confirm Message Displays as Desired</p>
+<p class="p-text">Step 4: Select Your Referral</p>
+<p class="p-text">Step 5: Proceed to Checkout</p>
+</div>	
+	<div id="u27" class="text">
+		<p class="boxcar-text1">Add up to three lines of personalization:</p>
+		<p class="boxcar-text2">Limit 30 characters per line</p>
+	</div>
+        	
+        <div 
+				id="default-options-container" 
+				class="options-container default-options-container" 
+				data-type="all-options" 
+				data-exclude-options="custcol_rcca_onsale,custcol5,custcol_oz_ships_separate,custcol_oz_scale,custcol_oz_item_weight,custcol_rcca_mem_shippingcost,custcol_rcca_nonmem_shippingcost,custcol_rcca_nonmem_price,custcol13,custcol14,custcol15,custcol16,custcol16,custcol_rcca_onsale_activated,custcol_ava_incomeaccount,custcol_ava_udf2,custcol_ava_taxcodemapping,custcol_ava_udf1,custcol_ava_item,custcol_ava_pickup,custcol_ava_upccode">
+		</div>
+		<br>		
+
+        		
+        <div class="" style="color:#333333;margin-left: 10px;">
+<span class="glyph-astriek"></span>
+	<label class="checkbox">
+		<input type="checkbox" name="confirm" class="confirm" id="confirm">
+		I confirm that the text entered is accurate and intended.
+	</label>
+</div>
+
+</div>
+	
+</div>
+
+	<% } %>
+	<% } %>
+	<!-- End of Personalised Boxcar Display -->	
+	
+	
+	
+	<div class="row" id="productCenter">
+		
+		<div class="col-md-6 col-lg-6" id="productDescription">
+        	<p id="sca-desc"><%= view.model.get('custitem45') %></p>
+            <p class="urge">Place your order today!</p>
+		</div><!-- end productDescription -->
+		
+		<div class="col-md-6 col-lg-6" id="productDetails">
+			<h4 id="featureHeader">Features: </h4>
+			<div id="quickFacts">
+				<div id="features"><%= view.model.get('custitem_features_list') %></div>
+			</div>
+			
+			<div id="productDetailList">	
+		    	
+		    	<h4>Product Specifications:</h4>			
+				
+				<ul>
+					
+					<li><strong>Gauge: </strong><%= view.model.get('custitem_gauge') %>
+						<span id="content1" class="wrap-center">&nbsp;
+							<a href="#" class="gauge-fancybox">
+								<img src="<%=SC.Utils.getAbsoluteUrl('img/infoBtn.png')%>">
+							</a>
+						</span>
+					</li>					
+					<li><strong>Dimensions: </strong><%= view.model.get('custitem_dimensions') %></li>
+					
+					<li><strong>Minimum Curve: </strong><%= view.model.get('custitem_min_curve') %>
+						<span id="content1" class="wrap-center">&nbsp;
+							<a href="#" class="minicurve-fancybox">
+								<img src="<%=SC.Utils.getAbsoluteUrl('img/infoBtn.png')%>">
+							</a>
+						</span>
+					</li>
+					<li><strong>Road Name: </strong><%= view.model.get('custitem_road_name') %></li>
+					<li><strong>Road Number: </strong><%= view.model.get('custitem_road_number') %></li>
+					<li><strong>Est. Ship Date: </strong><%= view.model.get('custitem_lnc_ship_date') %></li>
+				</ul>			
+			
+			</div><!-- end productDetailList -->
+		
+		</div><!-- end productDetails -->
+
+</div>
+
+<div class="row" id="upsell">
+	<div class="row-fluid" data-type="related-items-placeholder"></div>
+</div>
+
+
+<script>
+	
+	jQuery(document).ready(function() {
+        var desc=jQuery('#features').text();
+        jQuery('#features').html(desc);
+
+	});
+</script>
+
+<!--Start of Guage popup content and fancybox popup -->
+
+<link rel="stylesheet" href="<%=SC.Utils.getAbsoluteUrl('skins/standard/PdfVideoPopup.css')%>" />
+<link rel="stylesheet" href="<%=SC.Utils.getAbsoluteUrl('fancyModal/jquery.fancybox.css')%>" />
+<script src="<%=SC.Utils.getAbsoluteUrl('fancyModal/jquery.fancybox.js')%>"></script>
+
+ <script type="text/javascript">
+		jQuery('.gauge-fancybox').click(function() {
+			jQuery('.gauge-fancybox').fancybox({
+			 'autoScale': true,
+	     'transitionIn': 'elastic',
+	     'transitionOut': 'elastic',
+	     'speedIn': 500,
+	     'speedOut': 300,
+	     'scrolling' : 'auto',
+	     'autoDimensions': true,
+	     'centerOnScroll': true,
+		 'href' : '#gauge-mymodal',
+		 'type' :'inline',
+		 'width': 400,
+	     'height': 400,
+		 beforeShow: function(){
+			    jQuery("body").css({'overflow-y':'hidden'});
+			},
+			afterClose: function(){
+				jQuery("body").css({'overflow-y':'visible'});
+			}
+
+			});
+		});
+	</script>
+	
+
+ <div id="gauge-mymodal" style="display:none" class="text-fly gauge-popup">
+ 	<div class="areaLeft gauge-content">
+ 		<h1 style="display:block;">About Gauge</h1>
+ 		<p>On the real railroads as well as toy trains, gauge refers to the distance between the outside rails of the track.</p>
+ 		<p>Lionel O gauge track systemsâ€”which include O, O-27, and FasTrackÂ®â€”all measure 1 Â¼â€� between the outer rails. Any O gauge car or locomotive can ride on Lionel O gauge track, as long as the curve track used on your layout can accommodate your particular cars (see Minimum Curve section).</p>
+		<p>Lionel S gauge track (AF FasTrack) is narrower than O, and supports American Flyer and other S gauge cars.</p>
+ 
+ 			<div class="modalButton">
+ 				<span> 
+ 			<span> 
+ 				<button class="btn btn-danger" title="Learn More" onclick="javascript:window.location='/gauge'" type="button">
+ 				<span class="headerCompareButton">Learn More</span> 
+ 				</button> 
+  			</span> 
+ 				</span>
+  			</div>
+ 	</div>
+		<div class="areaRight"><br> 
+ 			<img title="O and O-27 gauges" src="<%=SC.Utils.getAbsoluteUrl('img/AboutGauge_track.png')%>" alt="O and O-27 gauges" width="409" height="84">
+ 			<img title="O and O-27 gauges" src="<%=SC.Utils.getAbsoluteUrl('img/AboutGauge_trains.png')%>" alt="O and O-27 gauges" >
+ 		</div>
+</div>
+
+<!--End of Guage popup content and fancybox popup -->
+ 
+<script>
+
+var featureslist = document.getElementById( "features" ).innerHTML;
+var newFeaturesList = featureslist.replace(/[|]/g,"<br>");
+document.getElementById( "features" ).innerHTML = newFeaturesList;   
+
+</script>
+
+<!--Start of Video popup content and fancybox popup -->
+
+
+ <script type="text/javascript">
+		jQuery('.video-fancybox').click(function() {
+			jQuery('.video-fancybox').fancybox({
+			 'autoScale': true,
+	     'transitionIn': 'elastic',
+	     'transitionOut': 'elastic',
+	     'speedIn': 500,
+	     'speedOut': 300,
+	     'scrolling' : 'auto',
+	     'autoDimensions': true,
+	     'centerOnScroll': true,
+		 'href' : '#video-info',
+		 'type' :'inline',
+		 'width': 400,
+	     'height': 400,
+		 beforeShow: function(){
+			    jQuery("body").css({'overflow-y':'hidden'});
+			},
+			afterClose: function(){
+				jQuery("body").css({'overflow-y':'visible'});
+			}
+
+			});
+		});
+	</script>
+	
+<div id="video-info" style="display:none;">
+<div id="video-links" style="background-color:white;height:auto">
+	
+		<div class="imgHeader"><%= model.get('_name') %></div>
+	<br>
+	
+	<div class="media-gallery" cellpadding="0" cellspacing="0">
+		
+		<div class="thumbnailsContainer">
+				
+				<div class="linksHeader" id="videolinks" style="display:none">Video Links</div>
+				
+				<div class="clickvideo click "onClick="videoContent('vid1')" id="vid1" style="display:none"><%= view.model.get('custitem_related_vid1_title') %></div>
+				<div class="clickvideo click" onClick="videoContent('vid2')" id="vid2" style="display:none"><%= view.model.get('custitem_related_vid2_title') %></div>
+				<div class="clickvideo click" onClick="videoContent('vid3')" id="vid3" style="display:none"><%= view.model.get('custitem_related_vid3_title') %></div>
+				<div class="clickvideo click" onClick="videoContent('vid4')" id="vid4" style="display:none"><%= view.model.get('custitem_related_vid4_title') %></div>
+		</div>
+		
+	</div>
+	
+	<div class="main-image" id="main-part">
+		<iframe src="" class="iframecontent" id="iframeSrc" style="display:none;" frameborder="0" allowfullscreen scrolling='no'></iframe>
+	</div>
+	
+</div>
+</div>
+<!--End of Video popup content and fancybox pop up -->
+
+<script>
+
+	var count =  0;
+	
+	if("<%= view.model.get('custitem_related_product_vid1') %>") {
+		document.getElementById('vid1').style.display="block";
+		count++;
+	}
+	
+	if(	"<%= view.model.get('custitem_related_product_vid2') %>" ) {
+		document.getElementById('vid2').style.display="block";
+		count++;
+	}
+	
+	if(	"<%= view.model.get('custitem_related_product_vid3') %>") {
+		document.getElementById('vid3').style.display="block";
+		count++;
+	}
+	
+	if(	"<%= view.model.get('custitem_related_product_vid4') %>") {
+		document.getElementById('vid4').style.display="block";
+		count++;
+	}
+
+	if(count>0) {
+		document.getElementById('videolinks').style.display="block";
+	}
+	
+	function videoContent(url) {
+		
+		var videoURL;
+		var ifrm = document.getElementById('iframeSrc');
+	
+		if(	url == "vid1") {
+			videoURL = "<%= view.model.get('custitem_related_product_vid1') %>";
+		}
+		
+		if(	url == "vid2") {
+			videoURL = "<%= view.model.get('custitem_related_product_vid2') %>";
+		}
+		
+		if(	url == "vid3") {
+			videoURL = "<%= view.model.get('custitem_related_product_vid3') %>";
+		}
+		
+		if(	url == "vid4") {
+			videoURL = "<%= view.model.get('custitem_related_product_vid4') %>";
+		}
+		
+		var splitURL = new Array();
+		splitURL = videoURL.split("youtu.be/");
+		var iframeURl = '//www.youtube.com/embed/';
+		iframeURl += splitURL[1];
+		document.getElementById('iframeSrc').src = iframeURl;
+		document.getElementById('iframeSrc').style.display="block";
+	
+	}
+	
+</script>
+
+<!--Start of Pdf popup content and fancybox pop up -->
+
+
+
+ <script type="text/javascript">
+		jQuery('.pdf-fancybox').click(function() {
+			jQuery('.pdf-fancybox').fancybox({
+			 'autoScale': true,
+	     'transitionIn': 'elastic',
+	     'transitionOut': 'elastic',
+	     'speedIn': 500,
+	     'speedOut': 300,
+	     'scrolling' : 'auto',
+	     'autoDimensions': true,
+	     'centerOnScroll': true,
+		 'href' : '#pdf-info',
+		 'type' :'inline',
+		 beforeShow: function(){
+			    jQuery("body").css({'overflow-y':'hidden'});
+			},
+			afterClose: function(){
+				jQuery("body").css({'overflow-y':'visible'});
+			}
+
+			});
+		});
+	</script>
+
+<div id="pdf-info" style="display:none;">
+<div id="pdf-links" style="background-color:white;height:auto">
+	
+		<div class="imgHeader"><%= model.get('_name') %></div>
+	<br>
+	
+	<div class="media-gallery" cellpadding="0" cellspacing="0">
+		
+		<div class="thumbnailsContainer">
+			
+			<div>
+				
+				<div class="linksHeader" id="pdflinks" style="display:none">PDF Links</div>
+				<div id="pdfNames"></div>
+			</div>
+		
+		</div>
+	</div>
+		
+	<div class="main-image" id="main-part">
+		<iframe src="" class="iframecontent" id="iframepdfSrc" style="display:none;" frameborder="0" allowfullscreen scrolling='no'></iframe>
+	</div>
+	
+</div>
+
+</div>
+<!--End of Pdf popup content and fancybox pop up -->
+
+
+
+<script>
+
+	var pdfURL1 = "<%= view.model.get('custitem_related_product_docs') %>";
+	var splitVar1 = new Array();
+	var splitVar2 = new Array();
+	splitVar1 = pdfURL1.split(",");
+	console.log('pdf url....'+splitVar1);
+	
+	 for( var index = 0; index <splitVar1.length && splitVar1!= ''; index++) {
+		
+		console.log('pdf url1....'+splitVar1[index]);
+                if( splitVar1[index] != '') {
+		splitVar2 = splitVar1[index].split("#");
+				
+		var iDiv = document.createElement('div'); 
+	 	iDiv.className = 'click';
+	 	iDiv.innerHTML = splitVar2[1];
+	 	iDiv.setAttribute('onClick',"pdfContent('"+splitVar2[0]+"')");
+	 	document.getElementById('pdfNames').appendChild(iDiv);
+	 	document.getElementById('pdflinks').style.display="block"; 
+                var breakLine = document.createElement("br");
+	 	document.getElementById('pdfNames').appendChild(breakLine);
+	 }	
+	} 
+	
+ 	function pdfContent(fileName) {
+		
+ 		var iframeUrl = "https://docs.google.com/gview?embedded=true&url="+SC.SESSION.touchpoints.home;
+		
+		document.getElementById('iframepdfSrc').src = iframeUrl+"<%=SC.Utils.getAbsoluteUrl('LionelStore Supporting Documents/"+fileName+"')%>";
+		document.getElementById('iframepdfSrc').style.display="block";
+	
+ 	} 
+ 	
+</script>
+
+<script>
+jQuery(document).ready(function(){
+	setTimeout(function(){
+var url= window.location.href; 
+var urlindex=url.indexOf("value");
+var sPageURL = window.location.search.substring(1);
+console.log('sPageURL'+sPageURL);
+var sURLVariables = sPageURL.split('&');
+console.log('sURLVariables'+sURLVariables);
+for (var i = 0; i < sURLVariables.length; i++) 
+{
+    var sParameterName = sURLVariables[i].split('=');
+    for (var j=0;j<sParameterName.length;j++) {
+    if (sParameterName[j] == 'value') 
+    {
+        console.log(sParameterName[j+1]);
+        var urlparam='.'+sParameterName[j+1];
+        jQuery("."+sParameterName[j+1]).trigger('click',[{somedata:true}]);
+    }
+    }
+}
+
+	},3000);
+});
+</script>
+
+<script>
+jQuery(document).ready(function(){
+	setTimeout(function(){
+	var url= window.location.href;
+	console.log('url of pdp'+url);
+	var pdpPageURL = window.location.search.substring(1);
+	console.log('pdpPageURL'+pdpPageURL);
+	var pdpURLVariables = pdpPageURL.split('&');
+	console.log('pdpURLVariables'+pdpURLVariables);
+	for (var i = 0; i < pdpURLVariables.length; i++) 
+	{
+	    var pdpParameterName = pdpURLVariables[i].split('=');
+	    for (var j=0;j<pdpParameterName.length;j++) {
+	    if (pdpParameterName[j] == 'ValueOrigin') 
+	    {
+	        console.log('pdpParameterName'+pdpParameterName[j+1]);
+	        jQuery('.wishlist').trigger('click');
+	    }
+	    }
+	}
+	},1000);
+	
+});
+</script>
+ 	
+<script>
+
+var SKU = document.getElementById("sku").innerHTML;
+
+if( SKU == "6-83149") {
+jQuery( "#inputdata1" ).addClass( "font-Green" );
+jQuery( "#inputdata2" ).addClass( "font-Green" );
+jQuery( "#inputdata3" ).addClass( "font-Green" );
+}
+
+else if( SKU == "6-82738") {
+jQuery( "#inputdata1" ).addClass( "font-Red" );
+jQuery( "#inputdata2" ).addClass( "font-Red" );
+jQuery( "#inputdata3" ).addClass( "font-Red" );
+}
+
+</script>
+ 
+ <style>
+ .font-Green{ font-family: 'WebFont', palace_scriptregular; font-weight: bold !important; font-size: 30px !important;}
+ @media (min-width:768px) and (max-width:992px) { .cart_personalised { position: relative; left: 0px !important; margin-top: -75px; } }
+ @media (min-width:992px) { .cart_personalised { position: relative; left: 0px !important; top: -10px !important; } .social_personalised {   margin-top: -5px !important;} }
+ .font-Red{ font-family: 'WebFont', ldfcomicsansmedium; }
+ </style>
+ 
+ <script>
+ 	 jQuery(function(){
+	    var test = localStorage.input === 'true'? true: false;
+	    jQuery('input').prop('checked', test || false);
+	});
+
+	jQuery('input').on('change', function() {
+	    localStorage.input = jQuery(this).is(':checked');
+	    console.log(jQuery(this).is(':checked'));
+	});
+	 
+ 	function dealerChange() {
+	 	if(jQuery("#confirm").prop('checked') == true) {
+		 	jQuery('#button1')[ this.checked ? 'addClass' : 'removeClass' ]('enabled').prop('disabled', !this.checked); 
+	 	}
+  	}
+ 
+  	jQuery('#confirm').change(function(){
+	 var selectValue = jQuery('#option-custcol_local_dealer').val();
+	 console.log("Local Dealer value..."+selectValue);
+	 if(selectValue > 0) {
+	    jQuery('#button1')[ this.checked ? 'addClass' : 'removeClass' ]('enabled').prop('disabled', !this.checked); 
+	 } 
+	 if(jQuery("#confirm").prop('checked') == false) {
+			
+		 document.getElementById("disableMsg").style.display="block";
+	}
+	 if( jQuery("#confirm").prop('checked') == true) {
+		 	
+		 document.getElementById("disableMsg").style.display="none";
+	 	
+	}
+	}); 
+	
+	var selectValue = jQuery('#option-custcol_local_dealer').val();
+	console.log("Local Dealer value..."+selectValue);
+
+	if( selectValue == "undefined" || jQuery("#confirm").prop('checked') == false) {
+		
+	 		document.getElementById("button1").disabled=true;
+		
+	}
+
+	if( selectValue > 0 && jQuery("#confirm").prop('checked') == true) {
+	 	
+	 		document.getElementById("button1").disabled=false;
+	 	
+	}
+ </script>
